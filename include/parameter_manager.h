@@ -21,6 +21,7 @@
 #define PARAMETER_MANAGER_H
 
 #include "parameter_if.h"
+#include "quicky_exception.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <assert.h>
@@ -28,30 +29,33 @@
 #include <vector>
 #include <map>
 #include <iostream>
+#include <sstream>
 
 namespace parameter_manager
 {
   class parameter_manager
   {
   public:
-    parameter_manager(const std::string & p_name,
-		      const std::string p_prefix,
-		      uint32_t p_nb_mandatory);
-    void add(parameter_if & p_parameter);
-    void treat_parameters(int argc, char ** argv);
-    void display(void)const;
+    inline parameter_manager(const std::string & p_name,
+			     const std::string & p_prefix,
+			     uint32_t p_nb_mandatory);
+    inline void add(parameter_if & p_parameter);
+    inline void treat_parameters(int argc, char ** argv);
+    inline const std::string & get_help_message(void);
   private:
+    inline void generate_help_message(void);
     uint32_t m_nb_mandatory;
     const std::string m_name;
     const std::string m_prefix;
     std::map<std::string,parameter_if*> m_prefixed_parameters;
     std::vector<parameter_if*> m_ordered_parameters;
     std::map<std::string,parameter_if*> m_all_parameters;
+    std::string m_help_message;
   };
 
   //----------------------------------------------------------------------------
   parameter_manager::parameter_manager(const std::string & p_name,
-				       const std::string p_prefix,
+				       const std::string & p_prefix,
 				       uint32_t p_nb_mandatory):
     m_nb_mandatory(p_nb_mandatory),
     m_name(p_name),
@@ -66,8 +70,7 @@ namespace parameter_manager
       std::map<std::string,parameter_if*>::const_iterator l_iter = m_all_parameters.find(l_name);
       if(l_iter != m_all_parameters.end())
 	{
-	  std::cout << "ERROR : a parameter named \"" << l_name << "\" was already defined" << std::endl ;
-	  exit(-1);
+	  throw quicky_exception::quicky_logic_exception("A parameter named \"" + l_name + "\" was already defined",__LINE__,__FILE__);
 	}
       m_all_parameters.insert(std::map<std::string,parameter_if*>::value_type(l_name,&p_parameter));
       if(p_parameter.is_prefixed())
@@ -105,9 +108,9 @@ namespace parameter_manager
 	      std::size_t l_pos = l_arg.find("=");
 	      if(l_pos == std::string::npos)
 		{
-		  std::cout << "ERROR : bad syntax in parameter assignment. It should be " << m_prefix << "<param_name>=<param_value>" << std::endl ;
-		  display();
-		  exit(-1);
+		  std::stringstream l_error_msg ;
+		  l_error_msg << "Bad syntax in parameter assignment. It should be " << m_prefix << "<param_name>=<param_value>" << std::endl << get_help_message();
+		  throw quicky_exception::quicky_logic_exception(l_error_msg.str(),__LINE__,__FILE__);
 		}
 
 	      // Get param name
@@ -117,9 +120,9 @@ namespace parameter_manager
 	      std::map<std::string,parameter_if*>::const_iterator l_iter = m_prefixed_parameters.find(l_param_name);
 	      if(l_iter == m_prefixed_parameters.end())
 		{
-		  std::cout << "ERROR : undefined parameter \"" << l_param_name << "\"" << std::endl ;
-		  display();
-		  exit(-1);
+		  std::stringstream l_error_msg;
+		  l_error_msg << "Undefined parameter \"" << l_param_name << "\"" << std::endl << get_help_message();
+		  throw quicky_exception::quicky_logic_exception(l_error_msg.str(),__LINE__,__FILE__);
 		}
 
 	      // Preparing assignation
@@ -130,9 +133,9 @@ namespace parameter_manager
 	    {
 	      if(l_nb_ordered_parameters_encountered >= m_ordered_parameters.size())
 		{
-		  std::cout << "Too many unprefixed parameters : \"" << l_arg << "\"" << std::endl ;
-		  display();
-		  exit(-1);		  
+		  std::stringstream l_error_msg;
+		  l_error_msg << "Too many unprefixed parameters : \"" << l_arg << "\"" << std::endl << get_help_message();
+		  throw quicky_exception::quicky_logic_exception(l_error_msg.str(),__LINE__,__FILE__);
 		}
 	      l_parameter = m_ordered_parameters[l_nb_ordered_parameters_encountered];
 	      l_value = l_arg;
@@ -145,55 +148,68 @@ namespace parameter_manager
 
       if(l_nb_ordered_parameters_encountered < m_nb_mandatory)
 	{
-	  std::cout << "ERROR : the following mandatory parameters are missing : " << std::endl ;
+	  std::stringstream l_error_msg ;
+	  l_error_msg << "The following mandatory parameters are missing : " << std::endl ;
 	  for(uint32_t l_index = l_nb_ordered_parameters_encountered ; l_index < m_nb_mandatory ; ++l_index)
 	    {
-	      std::cout << m_ordered_parameters[l_index]->get_name() << std::endl ;
+	      l_error_msg << m_ordered_parameters[l_index]->get_name() << std::endl ;
 	    }
-	  display();
-	  exit(1);
+	  l_error_msg << get_help_message();
+	  throw quicky_exception::quicky_logic_exception(l_error_msg.str(),__LINE__,__FILE__);
 	}
     }
 
     //----------------------------------------------------------------------------
-    void parameter_manager::display(void)const
+    const std::string & parameter_manager::get_help_message(void)
+      {
+	if("" == m_help_message)
+	  {
+	    generate_help_message();
+	  }
+	return m_help_message;
+      }
+
+    //----------------------------------------------------------------------------
+    void parameter_manager::generate_help_message(void)
     {
-      std::cout << "Usage is :" << std::endl ;
-      std::cout << "\t" << m_name ;
+      std::stringstream l_stream ;
+      l_stream << "Usage is :" << std::endl ;
+      l_stream << "\t" << m_name ;
       if(m_prefixed_parameters.size())
 	{
-	  std::cout << " [OPTIONS]" ;
+	  l_stream << " [OPTIONS]" ;
 	}
       std::vector<parameter_if*>::const_iterator l_iter_ordered = m_ordered_parameters.begin();
       std::vector<parameter_if*>::const_iterator l_iter_end_ordered = m_ordered_parameters.end();
       uint32_t l_parameter_index = 0;
       while(l_iter_ordered != l_iter_end_ordered)
 	{
-	  std::cout << " " ;
+	  l_stream << " " ;
 	  if(l_parameter_index >= m_nb_mandatory)
 	    {
-	      std::cout <<"[" ;
+	      l_stream <<"[" ;
 	    }
-	  std::cout << "<" << (*l_iter_ordered)->get_name() << ">" ;
+	  l_stream << "<" << (*l_iter_ordered)->get_name() << ">" ;
 	  if(l_parameter_index >= m_nb_mandatory)
 	    {
-	      std::cout <<"]" ;
+	      l_stream <<"]" ;
 	    }
 	  ++l_parameter_index;
 	  ++l_iter_ordered;
 	}
-      std::cout << std::endl ;
+      l_stream << std::endl ;
       if(m_prefixed_parameters.size())
 	{
-	  std::cout << "OPTIONS : " << m_prefix << "<paremeter_name>=<parameter_value>" << std::endl ;
+	  l_stream << "OPTIONS : " << m_prefix << "<paremeter_name>=<parameter_value>" << std::endl ;
 	  std::map<std::string,parameter_if*>::const_iterator l_iter = m_prefixed_parameters.begin();
 	  std::map<std::string,parameter_if*>::const_iterator l_iter_end = m_prefixed_parameters.end();
 	  while(l_iter != l_iter_end)
 	    {
-	      std::cout << "\t" << m_prefix << l_iter->first << "=..." << std::endl ;
+	      l_stream << "\t" << m_prefix << l_iter->first << "=..." << std::endl ;
 	      ++l_iter;
 	    }
 	}
+      m_help_message = l_stream.str();
     }
 }
 #endif // PARAMETER_MANAGER_H
