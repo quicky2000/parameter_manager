@@ -86,7 +86,14 @@ namespace parameter_manager
     //----------------------------------------------------------------------------
     void parameter_manager::treat_parameters(int argc, char ** argv)
     {
-      assert(m_nb_mandatory <= m_ordered_parameters.size());
+      if(m_nb_mandatory != m_ordered_parameters.size())
+      {
+        std::stringstream l_mandatory_stream ;
+        l_mandatory_stream << m_nb_mandatory;
+        std::stringstream l_nb_stream;
+        l_nb_stream << m_ordered_parameters.size();
+        throw quicky_exception::quicky_logic_exception("Number of defined mandatory parameters ("+l_nb_stream.str()+") is different than number of mandatory parameters declared ("+l_mandatory_stream.str()+")",__LINE__,__FILE__);
+      }
       uint32_t l_nb_ordered_parameters_encountered = 0;
       for(int32_t l_index = 1;l_index< argc;++l_index)
 	{
