@@ -207,7 +207,7 @@ namespace parameter_manager
       l_stream << std::endl ;
       if(m_prefixed_parameters.size())
 	{
-	  l_stream << "OPTIONS : " << m_prefix << "<paremeter_name>=<parameter_value>" << std::endl ;
+	  l_stream << "OPTIONS : " << m_prefix << "<parameter_name>=<parameter_value>" << std::endl ;
 	  std::map<std::string,parameter_if*>::const_iterator l_iter = m_prefixed_parameters.begin();
 	  std::map<std::string,parameter_if*>::const_iterator l_iter_end = m_prefixed_parameters.end();
 	  while(l_iter != l_iter_end)
