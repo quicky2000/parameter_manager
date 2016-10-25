@@ -19,9 +19,9 @@
 
 #ifndef PARAMETER_IF_H
 #define PARAMETER_IF_H
-#include <stdint.h>
-#include <stdlib.h>
-#include <assert.h>
+#include <cstdint>
+#include <cstdlib>
+#include <cassert>
 #include <string>
 #include <vector>
 #include <map>
@@ -88,9 +88,15 @@ namespace parameter_manager
       }
 
     //----------------------------------------------------------------------------
-    template <> uint32_t parameter_if::get_value(void)const
+    template <> int parameter_if::get_value(void)const
       {
-	return (uint32_t)atoi(m_text_value.c_str());
+	return stoi(m_text_value,NULL,10);
+      }
+
+    //----------------------------------------------------------------------------
+    template <> unsigned long long int parameter_if::get_value(void)const
+      {
+	return stoull(m_text_value,NULL,10);
       }
 }
 #endif // PARAMETER_IF_H
