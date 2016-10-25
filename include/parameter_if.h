@@ -98,6 +98,18 @@ namespace parameter_manager
       {
 	return stoull(m_text_value,NULL,10);
       }
+
+    //----------------------------------------------------------------------------
+    template <> float parameter_if::get_value(void)const
+      {
+	return stof(m_text_value);
+      }
+
+    //----------------------------------------------------------------------------
+    template <> double parameter_if::get_value(void)const
+      {
+	return stod(m_text_value);
+      }
 }
 #endif // PARAMETER_IF_H
 //EOF
