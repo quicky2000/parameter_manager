@@ -19,6 +19,7 @@
 
 #ifndef PARAMETER_IF_H
 #define PARAMETER_IF_H
+#include "quicky_exception.h"
 #include <cstdint>
 #include <cstdlib>
 #include <cassert>
