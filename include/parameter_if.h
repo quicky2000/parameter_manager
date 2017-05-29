@@ -96,6 +96,12 @@ namespace parameter_manager
       }
 
     //----------------------------------------------------------------------------
+    template <> unsigned int parameter_if::get_value(void)const
+      {
+	return stoul(m_text_value,nullptr,10);
+      }
+
+    //----------------------------------------------------------------------------
     template <> unsigned long long int parameter_if::get_value(void)const
       {
 	return stoull(m_text_value,nullptr,10);
