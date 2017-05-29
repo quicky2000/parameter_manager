@@ -92,13 +92,13 @@ namespace parameter_manager
     //----------------------------------------------------------------------------
     template <> int parameter_if::get_value(void)const
       {
-	return stoi(m_text_value,NULL,10);
+	return stoi(m_text_value,nullptr,10);
       }
 
     //----------------------------------------------------------------------------
     template <> unsigned long long int parameter_if::get_value(void)const
       {
-	return stoull(m_text_value,NULL,10);
+	return stoull(m_text_value,nullptr,10);
       }
 
     //----------------------------------------------------------------------------
