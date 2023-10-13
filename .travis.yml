@@ -1,10 +1,21 @@
-sudo: required
-dist: trusty
-language: cpp
-compiler:
-  - gcc
-#  - clang
+matrix:
+  include:
+    - os: linux
+      sudo: required
+      dist: jammy
+      compiler: gcc
+    - os: linux
+      sudo: required
+      dist: focal
+      compiler: gcc
+    - os: linux
+      sudo: required
+      dist: bionic
+      compiler: gcc
+    - os: osx
+      osx_image: xcode14.2
 
+language: cpp
 
 before_install:
   - MY_LOCATION=`pwd`
