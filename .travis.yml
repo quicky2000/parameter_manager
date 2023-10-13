@@ -25,7 +25,10 @@ before_install:
   - cd build
 
 script:
-  - generate_makefile parameter_manager
-  - make test
-  - ./bin/parameter_manager.exe Abcd -10 --double_param=12.34
+  -  if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then generate_makefile parameter_manager; make test; ./bin/parameter_manager.exe Abcd -10 --double_param=12.34 ; fi
+  - cd $MY_LOCATION; mkdir cmake_build; cd cmake_build
+  - cmake $QUICKY_REPOSITORY/parameter_manager
+  - make
+  - ./parameter_manager Abcd -10 --double_param=12.34
+
 #EOF
