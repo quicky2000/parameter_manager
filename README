@@ -1,9 +1,12 @@
 # parameter_manager
 #--------------
-Continuous integration with Travis-Ci:
-https://travis-ci.org/quicky2000/parameter_manager
-
 Utilities to manage command arguments
 
+Continuous integration with Travis-Ci:
+https://app.travis-ci.com/github/quicky2000/parameter_manager
+
+## LICENSE
+##--------
 Please see COPYING for info on the license.
 
+#EOF
